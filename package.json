@@ -1,25 +1,27 @@
 {
-  "name": "atomico-base",
-  "description": "a repo to start with atomico",
-  "meta": {
-    "title": "Started - Atomico + Vite(JS,JSX,TS,TSX)",
-    "description": "Hassle-free starter template, perfect for starting with Atomico",
-    "branch": "https://github.com/atomicojs/atomico/tree/2-started/"
-  },
+  "name": "@atomico/store",
+  "description": "Store to manage predictable and functional asynchrony",
   "workspaces": [
     "src/**/*",
     "site"
   ],
   "version": "0.0.0",
-  "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/atomicojs/store.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atomicojs/store/issues"
+  },
+  "homepage": "https://github.com/atomicojs/store#readme",
+  "author": "UpperCod",
   "scripts": {
     "start": "vite --force",
     "build": "vite build",
     "test": "wtr src/**/*.test.js --node-resolve",
     "exports": "exports src/components.js --exports --types --main components",
-    "prepublishOnly": "npm run test && npm run exports",
-    "create-component": "scaff template/component-jsx src"
+    "prepublishOnly": "npm run exports"
   },
   "dependencies": {
     "@atomico/hooks": "^3.33.4",
@@ -27,8 +29,8 @@
     "atomico": "latest"
   },
   "devDependencies": {
+    "@atomico/exports": "^0.27.0",
     "@atomico/plugin-vite": "^1.0.0",
-    "formilk": "^0.17.0",
     "vite": "latest"
   }
 }
