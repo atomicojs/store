@@ -1,12 +1,12 @@
-import { Type, Host, c } from "atomico";
+import { Type, Host, c, Props } from "atomico";
 import { useStoreConsumer } from "../hooks";
 import { InterfaceStore } from "../store";
 
-function storeConsumer(): Host<{
+function storeConsumer(props: Props<typeof storeConsumer>): Host<{
   onChangeState: Event;
   onStoreDefined: Event;
 }> {
-  const store = useStoreConsumer();
+  const store = useStoreConsumer(props.name);
 
   return (
     <host store={store} actions={store?.actions} state={store?.state}></host>
@@ -19,6 +19,9 @@ storeConsumer.props = {
     event: {
       type: "StoreDefined",
     },
+  },
+  name: {
+    type: null as Type<Symbol | string>,
   },
   state: {
     type: Object,

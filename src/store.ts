@@ -24,21 +24,27 @@ type MapActions<A extends Actions<any>> = {
     : () => Promise<void>;
 };
 
-export type InterfaceStore = Store<any, any, any>;
+export interface InterfaceStore<S = any, A = any> {
+  state: S;
+  actions: {
+    [I in keyof A]: A[I] extends (param: infer Param) => infer R
+      ? (param: Param) => Promise<R>
+      : (param: A[I]) => Promise<void>;
+  };
+  on(handler: (state: S) => any): () => void;
+}
 
 export class Store<
   S extends State,
   A extends Actions<S>,
-  G extends Getters<S>,
-  state = S & MapGetters<G>
+  G extends Getters<S>
 > {
-  state: state;
+  state: S & MapGetters<G>;
   actions: MapActions<A>;
   #state: S;
   #actions: A;
   #getters: G;
-  #delegate: InterfaceStore;
-  #subs: Set<(state: state) => any>;
+  #subs: Set<(state: S & MapGetters<G>) => any>;
   constructor(
     state: S,
     { actions, getters }: { actions?: A; getters?: G } = {}
@@ -53,44 +59,31 @@ export class Store<
   createProxyState() {
     return new Proxy(this, {
       get: (target, prop: any) => {
-        if (prop in this.#state) {
-          return this.#state[prop];
-        } else if (this.#getters && prop in this.#getters) {
+        if (this.#getters && prop in this.#getters) {
           return this.#getters[prop](this.#state);
-        } else if (this.#delegate) {
-          return this.#delegate.state[prop];
         }
+        return this.#state[prop];
       },
     }) as any;
   }
   createProxyActions() {
     return new Proxy(this, {
       get: (target, prop: any) => {
-        return (param) => {
-          if (this.#actions && prop in this.#actions) {
-            return consumer(this.#actions[prop], param, {
-              get: () => this.#state,
-              set: (nextState) => {
+        return (param: any) =>
+          consumer(this.#actions[prop], param, {
+            get: () => this.#state,
+            set: (nextState) => {
+              if (nextState) {
                 this.#state = nextState;
-                this.update();
-              },
-            });
-          } else if (this.#delegate) {
-            return this.#delegate.actions[prop];
-          }
-        };
+                this.#subs.forEach((listener) => listener(this.#state as any));
+              }
+            },
+          });
       },
     }) as any;
   }
-  update = () => this.#subs.forEach((listener) => listener(this.#state as any));
-  on = (listener: (state: state) => any) => {
+  on = (listener: (state: S & MapGetters<G>) => any) => {
     this.#subs.add(listener);
     return () => this.#subs.delete(listener);
-  };
-  delegate = (store: InterfaceStore) => {
-    if (store != this.#delegate) {
-      store.on(this.update);
-    }
-    this.#delegate = store;
   };
 }

@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@atomico/plugin-vite": "^1.0.0",
+    "formilk": "^0.17.0",
     "vite": "latest"
   }
 }
