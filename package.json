@@ -1,10 +1,9 @@
 {
   "name": "@atomico/store",
   "description": "Store to manage predictable and functional asynchrony",
-  "workspaces": [
-    "src/**/*",
-    "site"
-  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.0",
   "type": "module",
   "repository": {
@@ -20,7 +19,7 @@
     "start": "vite --force",
     "build": "vite build",
     "test": "wtr src/**/*.test.js --node-resolve",
-    "exports": "exports src/components.js --exports --types --main components",
+    "exports": "exports \"src/*.ts\" --exports --types --analyzer  --main store",
     "prepublishOnly": "npm run exports"
   },
   "dependencies": {
