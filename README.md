@@ -152,13 +152,15 @@ Did you notice this `return read(yield);`?
 
 ### useStore
 
-Allows a component subscription to store changes.
+You subscribe to a store directly.
 
 ```jsx
 useStore(store);
 ```
 
 ### useStoreProvider
+
+Define a Store to share with nested useStoreConsumers.
 
 ```jsx
 useStoreProvider(store, id?: string | symbol);
@@ -170,6 +172,8 @@ Where:
 2. `id`: Optional parameter, defines an ID for the Store, this allows that in the ascending search of `useStoreConsumer` the store is defined according to the equality of the ID
 
 ### useStoreConsumer
+
+Find and consume a store.
 
 ```ts
 const store = useStoreConsumer(id?: string | symbol);
