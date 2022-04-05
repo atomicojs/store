@@ -1,7 +1,7 @@
 import { useHost, useEvent, useState, useEffect, useUpdate } from "atomico";
 import { useListener } from "@atomico/hooks/use-listener";
 import { PromiseStatus } from "@atomico/hooks/use-promise";
-import { InterfaceStore } from "./store";
+import { InterfaceStore, InitialState, Actions, Store, Getters } from "./store";
 
 export const storeEventProvider = "store-provider";
 
@@ -29,6 +29,16 @@ export function useStoreProvider<S extends InterfaceStore<any>>(
       }
     }
   );
+}
+
+export function useScopeStore<
+  S extends InitialState,
+  A extends Actions<S>,
+  G extends Getters<S>
+>(state: S, { actions, getters }: { actions?: A; getters?: G } = {}) {
+  const [store] = useState(() => new Store(state, { actions, getters }));
+
+  return store;
 }
 
 export function useStore<S extends InterfaceStore>(store: S) {
