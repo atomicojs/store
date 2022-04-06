@@ -1,11 +1,17 @@
-import { useHost, useEvent, useState, useEffect, useUpdate } from "atomico";
+import {
+  Ref,
+  DOMEvent,
+  useHost,
+  useEvent,
+  useState,
+  useEffect,
+  useUpdate,
+} from "atomico";
 import { useListener } from "@atomico/hooks/use-listener";
 import { PromiseStatus } from "@atomico/hooks/use-promise";
-import { InterfaceStore, InitialState, Actions, Store, Getters } from "./store";
+import { InterfaceStore } from "./store";
 
-export const storeEventProvider = "store-provider";
-
-export const storeEventConsumer = "store-provider";
+export const storeEventContext = "store-context";
 
 export type IdStore = string | Symbol;
 
@@ -14,31 +20,32 @@ export interface DetailConsumer {
   sync(store: InterfaceStore<any>): void;
 }
 
+export type ActionObserve<A extends (param?: any) => Promise<any>> = (
+  param: A extends (param: infer P) => any ? P : any
+) => void;
+
 export function useStoreProvider<S extends InterfaceStore<any>>(
   store: S,
   id?: IdStore
 ) {
   const host = useHost();
-  useListener(
-    host,
-    storeEventProvider,
-    (event: CustomEvent<DetailConsumer>) => {
-      if (event.detail.id === id) {
-        event.stopImmediatePropagation();
-        event.detail.sync(store);
-      }
+  useListener(host, storeEventContext, (event: CustomEvent<DetailConsumer>) => {
+    if (event.detail.id === id) {
+      event.stopImmediatePropagation();
+      event.detail.sync(store);
     }
-  );
+  });
 }
 
-export function useScopeStore<
-  S extends InitialState,
-  A extends Actions<S>,
-  G extends Getters<S>
->(state: S, { actions, getters }: { actions?: A; getters?: G } = {}) {
-  const [store] = useState(() => new Store(state, { actions, getters }));
+export function useCloneStore<A extends InterfaceStore>(
+  store: A,
+  initialState?: A["clone"] extends (props: infer S) => any ? S : any
+) {
+  const [cloneStore] = useState<A>(() => store.clone(initialState));
 
-  return store;
+  useStore(cloneStore);
+
+  return cloneStore;
 }
 
 export function useStore<S extends InterfaceStore>(store: S) {
@@ -52,14 +59,36 @@ export function useStore<S extends InterfaceStore>(store: S) {
   return store;
 }
 
+export function useStoreConsumer<S extends InterfaceStore>(id?: IdStore) {
+  const dispatch = useEvent<DetailConsumer>(storeEventContext, {
+    bubbles: true,
+    composed: true,
+  });
+
+  const [store] = useState<S>(() => {
+    let parentStore: S;
+    dispatch({
+      id,
+      sync(store: any) {
+        parentStore = store;
+      },
+    });
+    return parentStore;
+  });
+
+  useStore(store);
+
+  return store;
+}
+
 export function useActionObserver<A extends (param: any) => Promise<any>>(
   action: A
-) {
+): [ActionObserve<A>, PromiseStatus] {
   const [state, setState] = useState<{
     status: PromiseStatus;
     id?: any;
     result?: any;
-    action: (param: A extends (param: infer P) => any ? P : any) => void;
+    action: ActionObserve<A>;
   }>(() => ({
     status: "",
     action: (param) => {
@@ -90,27 +119,23 @@ export function useActionObserver<A extends (param: any) => Promise<any>>(
       });
     },
   }));
-  return [state.action, state.status, state.result];
+  return [state.action, state.status];
 }
 
-export function useStoreConsumer<State, Actions = null>(id?: IdStore) {
-  const dispatch = useEvent<DetailConsumer>(storeEventConsumer, {
-    bubbles: true,
-    composed: true,
-  });
-
-  const [store] = useState<InterfaceStore<State, Actions>>(() => {
-    let parentStore: InterfaceStore<State, Actions>;
-    dispatch({
-      id,
-      sync(store: any) {
-        parentStore = store;
-      },
-    });
-    return parentStore;
-  });
-
-  useStore(store);
-
-  return store;
+export function useActionFromForm<A extends (data: any) => Promise<any>>(
+  ref: Ref<HTMLFormElement>,
+  storeAction: A,
+  mapSubmit?: (form: HTMLFormElement) => any
+): [PromiseStatus, ActionObserve<A>] {
+  const [action, status] = useActionObserver(storeAction);
+  useListener(
+    ref,
+    "submit",
+    (event: DOMEvent<HTMLFormElement, SubmitEvent>) => {
+      event.preventDefault();
+      const { current } = ref;
+      action(mapSubmit ? mapSubmit(current) : current);
+    }
+  );
+  return [status, action];
 }

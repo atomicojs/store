@@ -40,7 +40,11 @@ export interface InterfaceStore<S = any, A = any> {
       : (param: A[I]) => Promise<void>;
   };
   on(handler: (state: S) => any): () => void;
+  clone(props: InitialState): any;
 }
+
+const getState = (state: InitialState) =>
+  typeof state === "function" ? state() : state;
 
 export class Store<
   S extends InitialState,
@@ -57,7 +61,7 @@ export class Store<
     state: S,
     { actions, getters }: { actions?: A; getters?: G } = {}
   ) {
-    this.#state = typeof state === "function" ? state() : state;
+    this.#state = getState(state);
     this.#actions = actions;
     this.#getters = getters;
     this.#subs = new Set();
@@ -94,4 +98,12 @@ export class Store<
     this.#subs.add(listener);
     return () => this.#subs.delete(listener);
   };
+  clone = (state?: GetInitialState<S>): Store<S, A, G> =>
+    new (this.constructor as any)(
+      { ...this.#state, ...getState(state) },
+      {
+        actions: this.#actions,
+        getters: this.#getters,
+      }
+    );
 }
