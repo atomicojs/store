@@ -1,4 +1,4 @@
-# @atomico/store
+![@atomico/store](https://raw.githubusercontent.com/atomicojs/atomico/brand/atomico-store.svg)
 
 Naturally asynchronous to levels never seen before. `@atomico/store` is the library to manage asynchronous states in an ideal way, since it implements a pattern devised by [UpperCod](https://twitter.com/uppercod) that allows actions to be consumed in a predictable way, `@atomico/store` implements 3 classic concepts of a store:
 
