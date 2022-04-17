@@ -17,7 +17,7 @@
   "author": "UpperCod",
   "scripts": {
     "start": "vite --force",
-    "build": "vite build",
+    "build": "vite build --outDir docs --base store",
     "test": "wtr src/**/*.test.js --node-resolve",
     "exports": "exports \"src/*.ts\" --exports --types --analyzer  --main store",
     "prepublishOnly": "npm run exports"
