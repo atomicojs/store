@@ -23,7 +23,8 @@ export interface SchemaStore {
     [id: number]: {
       product: Product;
       total: number;
-      loading: Boolean;
+      loading: boolean;
+      disabled?: boolean;
     };
   };
   products: Product[];
@@ -43,8 +44,7 @@ export async function* calc(
   state: SchemaStore,
   { id, count }: { id: number | string; count: number }
 ) {
-  const { products, cart } = state;
-
+  const { products } = state;
   const product = products.find((product) => product.id === id);
   const cartId = state.cart[id] || { product, total: 0 };
 
@@ -59,12 +59,13 @@ export async function* calc(
     },
   };
 
-  const dataStock = await delay({ stock: 5 }, 2000);
+  const dataStock = await delay({ stock: 3 }, 500);
 
   state = yield;
 
   const lastCountId = state.cart[id];
   const nextStock = lastCountId.total + count;
+  const disabled = nextStock >= dataStock.stock;
 
   return {
     ...state,
@@ -72,7 +73,8 @@ export async function* calc(
       ...state.cart,
       [id]: {
         ...lastCountId,
-        total: nextStock < dataStock.stock ? nextStock : dataStock.stock,
+        total: disabled ? dataStock.stock : nextStock,
+        disabled,
         loading: false,
       },
     },

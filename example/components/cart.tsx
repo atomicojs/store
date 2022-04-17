@@ -14,11 +14,12 @@ function cart() {
         <Scroll>
           <div class="cart-products_grid">
             {Object.entries(store.state.cart).map(
-              ([id, { product, total, loading }]) => (
+              ([id, { product, total, loading, disabled }]) => (
                 <ProductThumb
                   title={product.name}
                   image={product.image}
-                  loading={!!loading}
+                  loading={loading}
+                  disabledIncrement={disabled}
                   onIncrement={() => {
                     store.actions.calc({ id, count: 1 });
                   }}

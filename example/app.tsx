@@ -9,7 +9,6 @@ import { Button, Scroll, Dropdown } from "formilk";
 import tokens from "formilk/tokens";
 import { Product } from "./components/product";
 import { Cart } from "./components/cart";
-// import { Loading } from "./components/loading";
 
 function app() {
   const store = useCloneStore(Store, {
@@ -46,7 +45,7 @@ function app() {
             fill="#fd2c88"
           />
         </svg>
-        <Dropdown>
+        <Dropdown showWithOver>
           <Button slot="action" color="primary" rounded>
             Cart (
             {Object.values(store.state.cart).reduce(
@@ -72,6 +71,7 @@ function app() {
                   count: 1,
                 });
               }}
+              disabled={!!store.state.cart?.[product.id]?.disabled}
               loading={!!store.state.cart?.[product.id]?.loading}
             ></Product>
           ))}

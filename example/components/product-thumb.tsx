@@ -22,6 +22,7 @@ function productThumb({
           rounded
           size="small"
           onclick={dispatchIncrement}
+          class="product-thumb_increment"
         >
           <Icon type="plus" slot="prefix"></Icon>
         </Button>
@@ -31,6 +32,7 @@ function productThumb({
           rounded
           size="small"
           onclick={dispatchDecrement}
+          class="product-thumb_decrement"
         >
           <Icon type="dash" slot="prefix"></Icon>
         </Button>
@@ -45,6 +47,14 @@ productThumb.props = {
   title: String,
   image: String,
   loading: Boolean,
+  disabled: {
+    type: Boolean,
+    reflect: true,
+  },
+  disabledIncrement: {
+    type: Boolean,
+    reflect: true,
+  },
 };
 
 productThumb.styles = [
@@ -60,6 +70,10 @@ productThumb.styles = [
       border-radius: var(--border-radius);
       overflow: hidden;
       box-sizing: border-box;
+    }
+    :host([disabled-increment]) .product-thumb_increment {
+      opacity: 0.5;
+      pointer-events: none;
     }
     .product-thumb_image {
       width: 100%;

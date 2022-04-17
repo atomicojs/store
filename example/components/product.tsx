@@ -42,6 +42,7 @@ product.props = {
   price: Number,
   description: String,
   loading: Boolean,
+  disabled: { type: Boolean, reflect: true },
 };
 
 product.styles = [
@@ -56,6 +57,10 @@ product.styles = [
       border-radius: var(--border-radius);
       overflow: hidden;
       position: relative;
+    }
+    :host([disabled]) {
+      opacity: 0.5;
+      pointer-events: none;
     }
     .product-detail {
       display: grid;
