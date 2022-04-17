@@ -43,9 +43,7 @@ export function useCloneStore<A extends InterfaceStore>(
 ) {
   const [cloneStore] = useState<A>(() => store.clone(initialState));
 
-  useStore(cloneStore);
-
-  return cloneStore;
+  return useStore(cloneStore);
 }
 
 export function useStore<S extends InterfaceStore>(store: S) {

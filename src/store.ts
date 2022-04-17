@@ -10,9 +10,7 @@ export interface Actions<State, A = GetInitialState<State>> {
   [prop: string]: (state: A, param: any) => any;
 }
 
-export type State<S extends InitialState, G = null> = G extends null
-  ? GetInitialState<S>
-  : GetInitialState<S> & MapGetters<GetInitialState<S>>;
+export type State<S extends InitialState> = GetInitialState<S>;
 
 export type InitialState =
   | (() => any)
@@ -51,12 +49,12 @@ export class Store<
   A extends Actions<S>,
   G extends Getters<S>
 > {
-  state: State<S, G>;
+  state: State<S> & MapGetters<G>;
   actions: MapActions<A>;
   #state: GetInitialState<S>;
   #actions: A;
   #getters: G;
-  #subs: Set<(state: S & MapGetters<G>) => any>;
+  #subs: Set<(state: State<S> & MapGetters<G>) => any>;
   constructor(
     state: S,
     { actions, getters }: { actions?: A; getters?: G } = {}
@@ -94,7 +92,7 @@ export class Store<
       },
     }) as any;
   }
-  on = (listener: (state: S & MapGetters<G>) => any) => {
+  on = (listener: (state: State<S> & MapGetters<G>) => any) => {
     this.#subs.add(listener);
     return () => this.#subs.delete(listener);
   };
