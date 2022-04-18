@@ -23,6 +23,8 @@ function app() {
 
   useEffect(actionGet, []);
 
+  console.log(store);
+
   return (
     <host shadowDom>
       <header class="app-header">
