@@ -3,7 +3,7 @@ import { Store } from "../src/store";
 import * as Actions from "./actions";
 
 const s = new Store(
-  (): Actions.SchemaStore => ({
+  (): Actions.State => ({
     api: "",
     cart: {},
     products: [],

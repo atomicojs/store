@@ -1,5 +1,7 @@
 ![@atomico/store](https://raw.githubusercontent.com/atomicojs/atomico/brand/atomico-store.svg)
 
+[![doc](https://raw.githubusercontent.com/atomicojs/atomico/brand/link-to-doc.svg)](https://atomico.gitbook.io/doc/atomico/atomico-store) [![Discord](https://raw.githubusercontent.com/atomicojs/atomico/brand/link-to-discord.svg)](https://discord.gg/7z3rNhmkNE) [![Figma](https://raw.githubusercontent.com/atomicojs/atomico/brand/link-to-twitter.svg)](https://twitter.com/atomicojs)
+
 Naturally asynchronous to levels never seen before. `@atomico/store` is the library to manage asynchronous states in an ideal way, since it implements a pattern devised by [UpperCod](https://twitter.com/uppercod) that allows actions to be consumed in a predictable way, `@atomico/store` implements 3 classic concepts of a store:
 
 1. `state`: observed and referential state for actions and getters.
@@ -147,66 +149,3 @@ Did you notice this `return read(yield);`?
 > finite execution based on the nominative consumption of another action with its own cycle.
 
 **the `next` action after page update dispatches the `read` action**.
-
-## API Hooks
-
-### useStore
-
-You subscribe to a store directly.
-
-```jsx
-useStore(store);
-```
-
-### useStoreProvider
-
-Define a Store to share with nested useStoreConsumers.
-
-```jsx
-useStoreProvider(store, id?: string | symbol);
-```
-
-Where:
-
-1. `store`: Store instance.
-2. `id`: Optional parameter, defines an ID for the Store, this allows that in the ascending search of `useStoreConsumer` the store is defined according to the equality of the ID
-
-### useStoreConsumer
-
-Find and consume a store.
-
-```ts
-const store = useStoreConsumer(id?: string | symbol);
-```
-
-Where:
-
-1. `id`: Optional parameter, identifier of the store defined by `useStoreProvider`
-
-## useActionObserver
-
-When every action is executed, it creates a promise. This hook allows you to observe the state of the promise when it is dispatched.
-
-```ts
-const [myAction, status, result] = useActionObserver(store.actions.myAction);
-```
-
-Where:
-
-1. `myAction`: function that dispatches the action.
-2. `status`: `"" | "pending" | "fulfilled" | "rejected"` dispatched action status.
-3. `result`: return of dispatched action
-
-## Api Components
-
-allows universal use of useStoreProvider and useStoreConsumer at the webcomponent level.
-
-```tsx
-<StoreProvider store={store}>
-  <StoreConsumer
-    onStoreDefined={({ currentTarget }) => {
-      currentTarget.store;
-    }}
-  />
-</StoreProvider>
-```

@@ -21,10 +21,10 @@ function cart() {
                   loading={loading}
                   disabledIncrement={disabled}
                   onIncrement={() => {
-                    store.actions.calc({ id, count: 1 });
+                    store.actions.calc({ id, value: 1 });
                   }}
                   onDecrement={() => {
-                    store.actions.calc({ id, count: -1 });
+                    store.actions.calc({ id, value: -1 });
                   }}
                   total={total}
                 ></ProductThumb>

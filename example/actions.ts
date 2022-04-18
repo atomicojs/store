@@ -17,7 +17,7 @@ export interface Product {
   slug: string;
 }
 
-export interface SchemaStore {
+export interface State {
   api: string;
   cart: {
     [id: number]: {
@@ -33,7 +33,7 @@ export interface SchemaStore {
 const delay = <A>(data?: A, ms = 300) =>
   new Promise<A>((resolve) => setTimeout(resolve, ms, data));
 
-export async function* get({ api }: SchemaStore) {
+export async function* get({ api }: State) {
   return {
     ...(yield),
     products: await (await fetch(api)).json(),
@@ -41,8 +41,8 @@ export async function* get({ api }: SchemaStore) {
 }
 
 export async function* calc(
-  state: SchemaStore,
-  { id, count }: { id: number | string; count: number }
+  state: State,
+  { id, value }: { id: number | string; value: number }
 ) {
   const { products } = state;
   const product = products.find((product) => product.id === id);
@@ -64,7 +64,7 @@ export async function* calc(
   state = yield;
 
   const lastCountId = state.cart[id];
-  const nextStock = lastCountId.total + count;
+  const nextStock = lastCountId.total + value;
   const disabled = nextStock >= dataStock.stock;
 
   return {

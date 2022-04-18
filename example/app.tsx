@@ -45,17 +45,22 @@ function app() {
             fill="#fd2c88"
           />
         </svg>
-        <Dropdown showWithOver>
-          <Button slot="action" color="primary" rounded>
-            Cart (
-            {Object.values(store.state.cart).reduce(
-              (currentTotal, { total }) => currentTotal + total,
-              0
-            )}
-            )
+        <div class="app-header_actions">
+          <Button rounded href="https://github.com/atomicojs/store">
+            Github
           </Button>
-          <Cart></Cart>
-        </Dropdown>
+          <Dropdown showWithOver>
+            <Button slot="action" color="primary" rounded>
+              Cart (
+              {Object.values(store.state.cart).reduce(
+                (currentTotal, { total }) => currentTotal + total,
+                0
+              )}
+              )
+            </Button>
+            <Cart></Cart>
+          </Dropdown>
+        </div>
       </header>
       <Scroll>
         <div class="app-grid">
@@ -68,7 +73,7 @@ function app() {
               onIncrement={() => {
                 store.actions.calc({
                   id: product.id,
-                  count: 1,
+                  value: 1,
                 });
               }}
               disabled={!!store.state.cart?.[product.id]?.disabled}
@@ -104,6 +109,10 @@ app.styles = [
       gap: var(--size-s);
       padding: 0px 10%;
       box-sizing: border-box;
+    }
+    .app-header_actions {
+      display: flex;
+      gap: var(--size-s);
     }
   `,
 ];
