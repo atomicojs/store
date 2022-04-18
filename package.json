@@ -18,7 +18,7 @@
   "scripts": {
     "start": "vite --force",
     "build": "vite build --outDir docs --base store",
-    "test": "wtr tests/**/*.test.ts --node-resolve",
+    "test": "wtr \"tests/**/*.test.ts\" --node-resolve",
     "exports": "exports \"src/*.ts\" --exports --types --analyzer  --main store",
     "prepublishOnly": "npm run test && npm run exports"
   },
