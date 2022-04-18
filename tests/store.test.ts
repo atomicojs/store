@@ -1,7 +1,7 @@
 import { expect } from "@esm-bundle/chai";
 import { Store } from "../src/store";
 
-describe("Store state", () => {
+describe("Store", () => {
   it("case 1: initialState as object", () => {
     const initialState = {
       count: 1,
@@ -98,5 +98,27 @@ describe("Store state", () => {
     });
 
     await store.actions.increment(10);
+  });
+
+  it("case 6: .clone()", async () => {
+    const initialState = {
+      count: 0,
+    };
+
+    const store = new Store(initialState);
+
+    expect(store.clone()).to.instanceOf(Store);
+  });
+
+  it("case 7: .clone()", async () => {
+    const initialState = {
+      count: 0,
+    };
+
+    const store = new Store(initialState);
+
+    const store2 = store.clone({ count: 10 });
+
+    expect(store2.state.count).to.equal(10);
   });
 });
