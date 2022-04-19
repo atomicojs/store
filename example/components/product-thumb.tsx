@@ -95,4 +95,4 @@ productThumb.styles = [
 
 export const ProductThumb = c(productThumb);
 
-customElements.define("my-product-thumb", ProductThumb);
+customElements.define("app-product-thumb", ProductThumb);

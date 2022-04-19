@@ -1,7 +1,7 @@
 import { c, css } from "atomico";
-import Store from "../store";
-import { useStore } from "../../src/hooks";
-import { ProductThumb } from "./product-thumb";
+import Store from "./store";
+import { useStore } from "../src/hooks";
+import { ProductThumb } from "./components/product-thumb";
 import { Scroll } from "formilk";
 import tokens from "formilk/tokens";
 
@@ -65,4 +65,4 @@ cart.styles = [
 
 export const Cart = c(cart);
 
-customElements.define("my-cart", Cart);
+customElements.define("app-cart", Cart);

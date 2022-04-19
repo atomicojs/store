@@ -95,4 +95,4 @@ product.styles = [
 
 export const Product = c(product);
 
-customElements.define("my-product", Product);
+customElements.define("app-product", Product);

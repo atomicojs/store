@@ -38,4 +38,4 @@ loading.styles = css`
 
 export const Loading = c(loading);
 
-customElements.define("my-loading", Loading);
+customElements.define("app-loading", Loading);
