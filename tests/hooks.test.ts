@@ -1,5 +1,5 @@
 import { useEffect } from "atomico";
-import { expect } from "@esm-bundle/chai";
+import { describe, it, expect } from "vitest";
 import { createHooks } from "atomico/test-hooks";
 import { Store } from "../src/store";
 import {
@@ -26,7 +26,7 @@ describe("useStoreProvider and useStoreConsumer", () => {
 
     hooksParent.cleanEffects()();
 
-    expect(hooksChild.load(() => useStoreConsumer())).to.equal(store);
+    expect(hooksChild.load(() => useStoreConsumer())).toEqual(store);
   });
 });
 
@@ -62,6 +62,6 @@ describe("useActionObserver", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 50)); //TICK
 
-    expect(values).to.deep.equal(valuesExpect);
+    expect(values).toEqual(valuesExpect);
   });
 });

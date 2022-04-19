@@ -1,4 +1,4 @@
-import { expect } from "@esm-bundle/chai";
+import { describe, it, expect } from "vitest";
 import { Store } from "../src/store";
 
 describe("Store", () => {
@@ -8,11 +8,11 @@ describe("Store", () => {
     };
     const store = new Store(initialState);
 
-    expect(store.state.count).to.deep.equal(initialState.count);
+    expect(store.state.count).toEqual(initialState.count);
 
     store.state.count = 100;
 
-    expect(store.state.count).to.deep.equal(initialState.count);
+    expect(store.state.count).toEqual(initialState.count);
   });
 
   it("case 2: initialState as function", () => {
@@ -21,11 +21,11 @@ describe("Store", () => {
     });
     const store = new Store(initialState);
 
-    expect(store.state.count).to.deep.equal(initialState().count);
+    expect(store.state.count).toEqual(initialState().count);
 
     store.state.count = 100;
 
-    expect(store.state.count).to.deep.equal(initialState().count);
+    expect(store.state.count).toEqual(initialState().count);
   });
 
   it("case 3: getters", () => {
@@ -41,7 +41,7 @@ describe("Store", () => {
       getters,
     });
 
-    expect(store.state.double).to.deep.equal(getters.double(initialState));
+    expect(store.state.double).toEqual(getters.double(initialState));
   });
 
   it("case 4: action async", async () => {
@@ -59,17 +59,17 @@ describe("Store", () => {
       },
     });
 
-    expect(store.state.count).to.equal(1);
+    expect(store.state.count).toEqual(1);
 
     await store.actions.increment();
 
-    expect(store.state.count).to.equal(2);
+    expect(store.state.count).toEqual(2);
 
     await store.actions.increment();
     await store.actions.increment();
     await store.actions.increment();
 
-    expect(store.state.count).to.equal(5);
+    expect(store.state.count).toEqual(5);
   });
 
   it("case 5: action async * and on", async () => {
@@ -94,7 +94,7 @@ describe("Store", () => {
     });
 
     store.on(({ count }) => {
-      expect(count).to.equal(states.shift());
+      expect(count).toEqual(states.shift());
     });
 
     await store.actions.increment(10);
@@ -119,6 +119,6 @@ describe("Store", () => {
 
     const store2 = store.clone({ count: 10 });
 
-    expect(store2.state.count).to.equal(10);
+    expect(store2.state.count).toEqual(10);
   });
 });
