@@ -1,12 +1,12 @@
 import { c, css } from "atomico";
 import Store from "../store";
-import { useStoreConsumer } from "../../src/hooks";
+import { useStore } from "../../src/hooks";
 import { ProductThumb } from "./product-thumb";
 import { Scroll } from "formilk";
 import tokens from "formilk/tokens";
 
 function cart() {
-  const store = useStoreConsumer<typeof Store>();
+  const store = useStore(Store);
 
   return (
     <host shadowDom>

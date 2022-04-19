@@ -2,7 +2,7 @@ import { Store } from "../src/store";
 
 import * as Actions from "./actions";
 
-const s = new Store(
+export default new Store(
   (): Actions.State => ({
     api: "",
     cart: {},
@@ -20,5 +20,3 @@ const s = new Store(
     },
   }
 );
-
-export default s;

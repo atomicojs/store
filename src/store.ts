@@ -31,6 +31,7 @@ export type MapActions<A extends Actions<any>> = {
 };
 
 export interface InterfaceStore<S = any, A = any> {
+  id: Symbol;
   state: S;
   actions: {
     [I in keyof A]: A[I] extends (param: infer Param) => infer R
@@ -49,6 +50,7 @@ export class Store<
   A extends Actions<S>,
   G extends Getters<S>
 > {
+  id: Symbol;
   state: State<S> & MapGetters<G>;
   actions: MapActions<A>;
   #state: GetInitialState<S>;
@@ -57,12 +59,14 @@ export class Store<
   #subs: Set<(state: State<S> & MapGetters<G>) => any>;
   constructor(
     state: S,
-    { actions, getters }: { actions?: A; getters?: G } = {}
+    { actions, getters }: { actions?: A; getters?: G } = {},
+    id: Symbol = Symbol()
   ) {
     this.#state = getState(state);
     this.#actions = actions;
     this.#getters = getters;
     this.#subs = new Set();
+    this.id = id;
     this.state = this.createProxyState();
     this.actions = this.createProxyActions();
   }
@@ -102,6 +106,7 @@ export class Store<
       {
         actions: this.#actions,
         getters: this.#getters,
-      }
+      },
+      this.id
     );
 }

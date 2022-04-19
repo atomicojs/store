@@ -1,29 +1,21 @@
 import { css, c, useEffect } from "atomico";
 import Store from "./store";
-import {
-  useActionObserver,
-  useCloneStore,
-  useStoreProvider,
-} from "../src/hooks";
+import { useActionObserver, useStore } from "../src/hooks";
 import { Button, Scroll, Dropdown } from "formilk";
 import tokens from "formilk/tokens";
 import { Product } from "./components/product";
 import { Cart } from "./components/cart";
 
 function app() {
-  const store = useCloneStore(Store, {
+  const store = useStore(Store, {
     api: "https://gist.githubusercontent.com/UpperCod/88f8ca5d8a43a59632124ebaf3aa08df/raw/db019d98c63d7310e8fb1444eb45cc1ffd46c698/canopy.json",
     cart: {},
     products: [],
   });
 
-  useStoreProvider(store);
-
   const [actionGet, status] = useActionObserver(store.actions.get);
 
   useEffect(actionGet, []);
-
-  console.log(store);
 
   return (
     <host shadowDom>
@@ -84,6 +76,7 @@ function app() {
           ))}
         </div>
       </Scroll>
+      <slot></slot>
     </host>
   );
 }

@@ -24,59 +24,60 @@ export type ActionObserve<A extends (param?: any) => Promise<any>> = (
   param: A extends (param: infer P) => any ? P : any
 ) => void;
 
-export function useStoreProvider<S extends InterfaceStore<any>>(
-  store: S,
-  id?: IdStore
-) {
+function useStoreProvider<S extends InterfaceStore<any>>(store: S) {
   const host = useHost();
   useListener(host, storeEventContext, (event: CustomEvent<DetailConsumer>) => {
-    if (event.detail.id === id) {
+    if (event.detail.id === store.id) {
       event.stopImmediatePropagation();
       event.detail.sync(store);
     }
   });
 }
 
-export function useCloneStore<A extends InterfaceStore>(
-  store: A,
-  initialState?: A["clone"] extends (props: infer S) => any ? S : any
-) {
-  const [cloneStore] = useState<A>(() => store.clone(initialState));
-
-  return useStore(cloneStore);
-}
-
-export function useStore<S extends InterfaceStore>(store: S) {
-  const update = useUpdate();
-
-  useEffect(() => {
-    if (!store) return;
-    return store.on(update);
-  }, [store]);
-
-  return store;
-}
-
-export function useStoreConsumer<S extends InterfaceStore>(id?: IdStore) {
+function useStoreConsumer<S extends InterfaceStore>(store: S) {
   const dispatch = useEvent<DetailConsumer>(storeEventContext, {
     bubbles: true,
     composed: true,
   });
 
-  const [store] = useState<S>(() => {
-    let parentStore: S;
+  const [currentStore] = useState<S>(() => {
+    let parentStore = store;
     dispatch({
-      id,
-      sync(store: any) {
-        parentStore = store;
+      id: store.id,
+      sync(nextStore: any) {
+        parentStore = nextStore;
       },
     });
     return parentStore;
   });
 
-  useStore(store);
+  return currentStore;
+}
 
-  return store;
+export function useStore<S extends InterfaceStore>(
+  store: S,
+  initialState?: S["clone"] extends (props: infer I) => any ? Partial<I> : any
+) {
+  const update = useUpdate();
+
+  let [currentStore] = useState<S>(() =>
+    initialState ? store.clone(initialState) : store
+  );
+  /**
+   * @todo analyze the need to inherit the concurrent state from root
+   */
+  const rootStore = useStoreConsumer(currentStore);
+
+  currentStore = initialState ? currentStore : rootStore;
+
+  useStoreProvider(currentStore);
+
+  useEffect(() => {
+    if (!currentStore) return;
+    return currentStore.on(update);
+  }, [currentStore]);
+
+  return currentStore;
 }
 
 export function useActionObserver<A extends (param: any) => Promise<any>>(

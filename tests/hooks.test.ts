@@ -2,13 +2,9 @@ import { useEffect } from "atomico";
 import { describe, it, expect } from "vitest";
 import { createHooks } from "atomico/test-hooks";
 import { Store } from "../src/store";
-import {
-  useStoreProvider,
-  useStoreConsumer,
-  useActionObserver,
-} from "../src/hooks";
+import { useStore, useActionObserver } from "../src/hooks";
 
-describe("useStoreProvider and useStoreConsumer", () => {
+describe("context", () => {
   it("context", () => {
     const hostParent = document.createElement("div");
     const hooksParent = createHooks(() => {}, hostParent);
@@ -20,13 +16,15 @@ describe("useStoreProvider and useStoreConsumer", () => {
 
     const store = new Store({ count: 0 });
 
-    hooksParent.load(() => {
-      useStoreProvider(store);
-    });
+    const scopeStore = hooksParent.load(() =>
+      useStore(store, {
+        count: 1,
+      })
+    );
 
     hooksParent.cleanEffects()();
 
-    expect(hooksChild.load(() => useStoreConsumer())).toEqual(store);
+    expect(hooksChild.load(() => useStore(store))).toEqual(scopeStore);
   });
 });
 
