@@ -13,9 +13,9 @@ function app() {
     products: [],
   });
 
-  const [actionGet, status] = useActionObserver(store.actions.get);
+  useEffect(() => store.actions.get().expire, []);
 
-  useEffect(actionGet, []);
+  useEffect(() => store.actions.clock().expire, []);
 
   return (
     <host shadowDom>

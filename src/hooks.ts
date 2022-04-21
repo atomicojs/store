@@ -6,10 +6,11 @@ import {
   useState,
   useEffect,
   useUpdate,
+  useRef,
 } from "atomico";
 import { useListener } from "@atomico/hooks/use-listener";
 import { PromiseStatus } from "@atomico/hooks/use-promise";
-import { InterfaceStore } from "./store";
+import { InterfaceStore, Cycle } from "./store";
 
 export const storeEventContext = "store-context";
 
@@ -20,7 +21,7 @@ export interface DetailConsumer {
   sync(store: InterfaceStore<any>): void;
 }
 
-export type ActionObserve<A extends (param?: any) => Promise<any>> = (
+export type ActionObserve<A extends (param?: any) => Cycle<any>> = (
   param: A extends (param: infer P) => any ? P : any
 ) => void;
 
@@ -74,54 +75,57 @@ export function useStore<S extends InterfaceStore>(
 
   useEffect(() => {
     if (!currentStore) return;
-    return currentStore.on(update);
+    const off = currentStore.on(update);
+    return () => {
+      off();
+      if (initialState) currentStore.clean();
+    };
   }, [currentStore]);
 
   return currentStore;
 }
 
-export function useActionObserver<A extends (param: any) => Promise<any>>(
+export function useActionObserver<A extends (param: any) => Cycle<any>>(
   action: A
 ): [ActionObserve<A>, PromiseStatus] {
+  const ref = useRef<Cycle>();
   const [state, setState] = useState<{
     status: PromiseStatus;
-    id?: any;
-    result?: any;
     action: ActionObserve<A>;
   }>(() => ({
     status: "",
     action: (param) => {
-      setState(function id(state) {
-        if (state.status === "pending") {
-          return state;
-        } else {
-          action(param).then(
-            (result) =>
-              setState((state) =>
-                state.id === id
-                  ? { ...state, result, status: "fulfilled" }
-                  : state
-              ),
-            (result) =>
-              setState((state) =>
-                state.id === id
-                  ? { ...state, result, status: "rejected" }
-                  : state
-              )
-          );
-          return {
-            ...state,
-            id,
-            status: "pending",
-          };
+      if (ref.current) {
+        ref.current.expire();
+      }
+
+      const task = (ref.current = action(param));
+
+      setState((state) =>
+        state.status === "pending"
+          ? state
+          : {
+              ...state,
+              status: "pending",
+            }
+      );
+
+      task.then(
+        () => {
+          if (task === ref.current)
+            setState((state) => ({ ...state, status: "fulfilled" }));
+        },
+        () => {
+          if (task === ref.current)
+            setState((state) => ({ ...state, status: "rejected" }));
         }
-      });
+      );
     },
   }));
   return [state.action, state.status];
 }
 
-export function useActionFromForm<A extends (data: any) => Promise<any>>(
+export function useActionFromForm<A extends (data: any) => Cycle<any>>(
   ref: Ref<HTMLFormElement>,
   storeAction: A,
   mapSubmit?: (form: HTMLFormElement) => any

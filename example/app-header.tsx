@@ -1,12 +1,13 @@
 import { c, css } from "atomico";
-import { Button, Dropdown } from "formilk";
+import { Button, Dropdown, Input, Icon } from "formilk";
 import { Cart } from "./app-cart";
 import Store from "./store";
-import { useStore } from "../src/hooks";
+import { useActionObserver, useStore } from "../src/hooks";
 import tokens from "formilk/tokens";
 
 function appHeader() {
   const store = useStore(Store);
+  const [search] = useActionObserver(store.actions.search);
   return (
     <host shadowDom>
       <svg xmlns="http://www.w3.org/2000/svg" width="81" height="30" staticNode>
@@ -24,6 +25,18 @@ function appHeader() {
         />
       </svg>
       <div class="app-header_actions">
+        <span>
+          {store.state.time.toString().replace(/.+(\d+:\d+:\d+).+/, "$1")}
+        </span>
+        <Input
+          placeholder="..."
+          class="app-header_search"
+          oninput={(event) => {
+            search(event.target.value);
+          }}
+        >
+          <Icon type="search" slot="prefix"></Icon>
+        </Input>
         <strong>
           {store.state.total ? `Total: $ ${store.state.total}` : ""}
         </strong>
@@ -61,6 +74,13 @@ appHeader.styles = [
       display: flex;
       gap: var(--size-s);
       align-items: center;
+    }
+    .app-header_search {
+      width: 100px;
+      transition: 0.3s ease all;
+    }
+    .app-header_search[focused] {
+      width: 180px;
     }
   `,
 ];

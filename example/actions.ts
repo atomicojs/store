@@ -19,6 +19,7 @@ export interface Product {
 
 export interface State {
   api: string;
+  search: string;
   cart: {
     [id: number]: {
       product: Product;
@@ -38,6 +39,11 @@ export async function* get({ api }: State) {
     ...(yield),
     products: await (await fetch(api)).json(),
   };
+}
+
+export async function* search(state: State, search: string) {
+  await delay(null, 1000);
+  return { ...(yield), search };
 }
 
 export async function* calc(

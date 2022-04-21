@@ -1,4 +1,6 @@
-import { consumer } from "@uppercod/consume-generator";
+import { consumer, Cycle } from "@uppercod/consume-generator";
+
+export { Cycle } from "@uppercod/consume-generator";
 
 export type Getter<State> = (state: State) => any;
 
@@ -26,8 +28,8 @@ export type MapGetters<G extends Getters<any>> = {
 
 export type MapActions<A extends Actions<any>> = {
   [I in keyof A]: A[I] extends (state: any, param?: infer P) => infer R
-    ? (param?: P) => Promise<R>
-    : () => Promise<void>;
+    ? (param?: P) => Cycle<R>
+    : () => Cycle<void>;
 };
 
 export interface InterfaceStore<S = any, A = any> {
@@ -40,6 +42,7 @@ export interface InterfaceStore<S = any, A = any> {
   };
   on(handler: (state: S) => any): () => void;
   clone(props: InitialState): any;
+  clean(): void;
 }
 
 const getState = (state: InitialState) =>
@@ -57,6 +60,7 @@ export class Store<
   #actions: A;
   #getters: G;
   #subs: Set<(state: State<S> & MapGetters<G>) => any>;
+  #task: Set<Set<Cycle>>;
   constructor(
     state: S,
     { actions, getters }: { actions?: A; getters?: G } = {},
@@ -66,6 +70,7 @@ export class Store<
     this.#actions = actions;
     this.#getters = getters;
     this.#subs = new Set();
+    this.#task = new Set();
     this.id = id;
     this.state = this.createProxyState();
     this.actions = this.createProxyActions();
@@ -81,20 +86,39 @@ export class Store<
     }) as any;
   }
   createProxyActions() {
-    return new Proxy(this, {
-      get: (target, prop: any) => {
-        return (param: any) =>
-          consumer(this.#actions[prop], param, {
+    return Object.entries(this.#actions || {}).reduce(
+      (actions, [prop, action]) => {
+        let task = new Set<Cycle>();
+
+        this.#task.add(task);
+
+        actions[prop] = (param: any) => {
+          const id = consumer<S>(action, param, {
             get: () => this.#state,
-            set: (nextState) => {
-              if (nextState) {
+            set: (nextState: any) => {
+              if (nextState != null) {
                 this.#state = nextState;
                 this.#subs.forEach((listener) => listener(this.#state as any));
               }
             },
           });
+
+          task.add(id);
+
+          const expire = () => {
+            task.delete(id);
+            id.expire();
+          };
+
+          id.then(expire, expire);
+
+          return id;
+        };
+
+        return actions;
       },
-    }) as any;
+      {}
+    ) as MapActions<A>;
   }
   on = (listener: (state: State<S> & MapGetters<G>) => any) => {
     this.#subs.add(listener);
@@ -108,5 +132,12 @@ export class Store<
         getters: this.#getters,
       },
       this.id
+    );
+  clean = () =>
+    this.#task.forEach((task) =>
+      task.forEach((id) => {
+        id.expire();
+        task.delete(id);
+      })
     );
 }

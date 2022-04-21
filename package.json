@@ -16,7 +16,7 @@
   "homepage": "https://github.com/atomicojs/store#readme",
   "author": "UpperCod",
   "scripts": {
-    "start": "vite",
+    "start": "vite --force",
     "build": "vite build --outDir docs --base store",
     "test": "vitest ",
     "coverage": "vitest run --coverage",
@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@atomico/hooks": "^3.33.4",
-    "@uppercod/consume-generator": "^1.0.0",
+    "@uppercod/consume-generator": "^1.4.1",
     "atomico": "^1.52.0"
   },
   "devDependencies": {

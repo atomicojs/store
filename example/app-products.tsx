@@ -8,22 +8,24 @@ function appProducts() {
   const store = useStore(Store);
   return (
     <host shadowDom>
-      {store.state.products.map((product) => (
-        <Product
-          title={product.name}
-          image={product.image}
-          uid={product.id}
-          price={product.price}
-          onIncrement={() => {
-            store.actions.calc({
-              id: product.id,
-              value: 1,
-            });
-          }}
-          disabled={!!store.state.cart?.[product.id]?.disabled}
-          loading={!!store.state.cart?.[product.id]?.loading}
-        ></Product>
-      ))}
+      {(store.state.search ? store.state.filter : store.state.products).map(
+        (product) => (
+          <Product
+            title={product.name}
+            image={product.image}
+            uid={product.id}
+            price={product.price}
+            onIncrement={() => {
+              store.actions.calc({
+                id: product.id,
+                value: 1,
+              });
+            }}
+            disabled={!!store.state.cart?.[product.id]?.disabled}
+            loading={!!store.state.cart?.[product.id]?.loading}
+          ></Product>
+        )
+      )}
     </host>
   );
 }

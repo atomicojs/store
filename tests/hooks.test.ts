@@ -33,12 +33,12 @@ describe("useActionObserver", () => {
     const values = [];
     const valuesExpect = ["", "pending", "fulfilled"];
 
-    let firstCycle: Promise<any>;
+    let lastCycle: Promise<any>;
 
     const spy = () => {
       const cycle = store.actions.increment();
 
-      firstCycle = firstCycle || cycle;
+      lastCycle = cycle;
 
       return cycle;
     };
@@ -73,7 +73,7 @@ describe("useActionObserver", () => {
 
     hooks.cleanEffects()();
 
-    await firstCycle;
+    await lastCycle;
 
     expect(values).toEqual(valuesExpect);
   });
