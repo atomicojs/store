@@ -122,6 +122,17 @@ export function useActionObserver<A extends (param: any) => Cycle<any>>(
       );
     },
   }));
+
+  useEffect(
+    () => () => {
+      if (ref.current) {
+        ref.current.expire();
+        ref.current = null;
+      }
+    },
+    []
+  );
+
   return [state.action, state.status];
 }
 
