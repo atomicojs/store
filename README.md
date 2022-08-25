@@ -1,109 +1,175 @@
-![@atomico/store](https://raw.githubusercontent.com/atomicojs/atomico/brand/atomico-store.svg)
+# @atomico/store
 
 [![doc](https://raw.githubusercontent.com/atomicojs/atomico/brand/link-to-doc.svg)](https://atomico.gitbook.io/doc/atomico/atomico-store) [![Discord](https://raw.githubusercontent.com/atomicojs/atomico/brand/link-to-discord.svg)](https://discord.gg/7z3rNhmkNE) [![Figma](https://raw.githubusercontent.com/atomicojs/atomico/brand/link-to-twitter.svg)](https://twitter.com/atomicojs)
 
-## @atomico/store is Naturally asynchronous.
+`@atomico/store` is Atomico's answer to application-level state abstraction lookup, the store in Atomico is composed of:
+
+1. `state`: any value other than a function.
+2. `actions`: (Optional) Functions capable of modifying the state, these can be synchronous or async functions.
+
+## The Store
+
+```tsx
+import { createStore } from "@atomico/store";
+
+const store = createStore(0, {
+  increment: (state) => state + 1,
+  decrement: (state) => state + 1,
+});
+```
+
+To add subscribers to store we just have to use the on method, example
 
 ```ts
-interface State {
-  api: string;
-  loading: boolean;
-  products: { id: number; title: string; price: number };
-}
-
-const initialState = (state: State) => ({
-  api: "",
-  loading: false,
-  products: [],
+store.on((state) => {
+  console.log(`New State ${state}!`);
 });
+```
 
-async function* getProducts(state: State) {
-  yield { ...state, loading: true };
-  return {
-    ...(yield),
-    loading: false,
-    products: await (await fetch(state.api)).json(),
+To dispatch changes to the store we only have to execute the action inside the `store.actions`, example:
+
+```ts
+store.actions.increment(); // `New State 1!`
+store.actions.decrement(); // `New State 0!`
+```
+
+Finally if we want to modify the value directly we can use `store.state`, example:
+
+```ts
+store.state = 100; // `New State 100!`
+```
+
+### Optional Actions?
+
+If in @atomicos/store you can create stores without actions defined within the store, subscribers will be notified when the `store.state` property changes.
+
+## Actions
+
+Actions are the ideal way to modify the state, they have a reducer syntax, example:
+
+```ts
+function multiply(state: number, param: number) {
+  return state * param;
+}
+```
+
+the actions can be Synchronous or Asynchronous, the previous example is synchronous in execution, but in most cases the stores are asynchronous and atomic to simplify this introduces the use of:
+
+1. Async functions.
+2. [Async generator functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator).
+
+### Actions as Async functions
+
+ideal for making requests of which you do not want to have explicit knowledge in the store of the status of this, example
+
+```ts
+async function getUser(state: User, id: number) {
+  const result = await fetch(`/users/${id}`);
+  return result.json();
+}
+```
+
+### Actions as Async generator functions
+
+Ideal for requests in which you want to notify the status progressively, example:
+
+```ts
+async function* getUser(state: State, id: number) {
+  yield {
+    loading: true,
   };
-}
 
-const store = new Store(initialState, {
-  actions: { getProducts },
-});
-```
+  const result = await fetch(`/users/${id}`);
 
-## Objectives
-
-1. [Asynchrony management](#asynchrony-management).
-2. [Finitely predictable asynchrony](#finitely-predictable-asynchrony).
-3. [Modularity and composition](#modularity-and-composition).
-
-### Asynchrony management
-
-Application events and service calls are naturally asynchronous, with @atomico/store you can use asynchronous functions or asynchronous generators to define the update cycle.
-
-**update cycle?** By this I mean the states that occur sequentially when dispatching the action, example:
-
-```ts
-async function* getProducts(state: State) {
-  yield { ...state, loading: true };
   return {
-    ...(yield),
     loading: false,
-    products: await (await fetch(state.api)).json(),
-  };
-}
-```
-
-The previous action will generate 2 states when dispatched:
-
-1. state 1:`{loading: true, products:[]}`
-2. state 2: `{loading: false, products:[...product]}`
-
-The advantage of this is that the process is clearly observable by the store and by whoever dispatches the action.
-
-### Finitely predictable asynchrony
-
-Every action in @atomico/store is wrapped in a promise that defines when it ends its cycle, this will let you execute actions sequentially, example:
-
-```ts
-await store.actions.orderyBy();
-await store.actions.insert({ id: 1000 });
-await store.actions.updateAll();
-```
-
-### Modularity and composition
-
-@atomico/store allows to decouple the actions and the state of the store, for a better modularization , example:
-
-**/actions.js**
-
-```ts
-export interface State {
-  api: string;
-  loading: boolean;
-  products: { id: number; title: string; price: number };
-}
-
-export const initialState = (state: State) => ({
-  api: "",
-  loading: false,
-  products: [],
-});
-
-export async function* getProducts(state: State) {
-  yield { ...state, loading: true };
-  return {
-    ...(yield),
-    loading: false,
-    products: await (await fetch(state.api)).json(),
+    result: await result.json(),
   };
 }
 ```
 
-**/store.js**
+## Hooks
+
+The api exposed below is Atomico's own
+
+### useStore
+
+Allows to synchronize the component to the desired store.
+
+```tsx
+import { createStore, useStore } from "@atomico/store";
+
+const Counter = createStore(0, {
+  increment: (state) => state + 1,
+  decrement: (state) => state + 1,
+});
+
+function component() {
+  const store = useStore(Counter);
+  return (
+    <host>
+      <button onclick={store.decrement}>Decrement</button>
+      <h1>{store.state}</h1>
+      <button onclick={store.increment}>Increment</button>
+    </host>
+  );
+}
+```
+
+useStore returns the store to reference either globally or by context, this process is automatic.
+
+If you want to create a communication context through the store you can add a second parameter to useStore and you will automatically create a context between the parent component and its children, example:
+
+```tsx
+function parent() {
+  const store = useStore(Counter, (state) => state);
+  return (
+    <host>
+      <h1>{store.parent}</h1>
+      <Child></Child>
+    </host>
+  );
+}
+
+function child() {
+  const store = useStore(Counter);
+  return (
+    <host>
+      <h1>{store.parent}</h1>
+    </host>
+  );
+}
+
+const Parent = c(parent);
+const Child = c(child);
+```
+
+In the previous example the Child component will inherit the store of the Parent component and thus a synchronization between parent and child will be generated automatically.
+
+## useAction
+
+create a wrapper function for asynchronous to know its status or abort it.
+
+```tsx
+function component() {
+  const { actions } = useStore(Store);
+
+  const action = useAction(actions.myAsyncAction);
+
+  return (
+    <host>
+      <button onclick={action} disabled={action.loading}>
+        Submit
+      </button>
+    </host>
+  );
+}
+```
+
+Each execution sets the loading state, executions do not remove the previous one unless you set the second parameter to true, example:
 
 ```ts
-import * as Actions from "./actions";
-
-export default new Store(Actions.initialStore, { actions: { Actions } });
+const action = useAction(actions.myAsyncAction, true);
 ```
+
+this defines that only the resolution of the last execution is observed and the previous ones will be aborted

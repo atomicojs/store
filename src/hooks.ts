@@ -1,5 +1,63 @@
-import { useEvent, useState, useHost, useUpdate, useEffect } from "atomico";
+import {
+  useEvent,
+  useState,
+  useHost,
+  useUpdate,
+  useEffect,
+  useRef,
+} from "atomico";
 import { Store } from "./store";
+import { Cycle } from "./consume";
+
+interface ActionWrapper<Action extends (param: any) => any> {
+  (value: Action extends (param: infer Param) => any ? Param : any): void;
+  loading?: boolean;
+  abort(): void;
+}
+
+export function useAction<Action extends (value?: any) => Cycle<any>>(
+  action: Action,
+  pipeline?: boolean
+) {
+  const ref = useRef<any>();
+
+  ref.current = action;
+
+  const [loading, setLoading] = useState(false);
+
+  const [callback] = useState(() => {
+    ref.cycles = new Set();
+    const wrapper: ActionWrapper<Action> = (param) => {
+      if (pipeline && ref.lastCycle) {
+        ref.lastCycle.abort();
+      }
+      setLoading(true);
+      const cycle = action(param);
+      ref.cycles.add(cycle.abort);
+      ref.lastCycle = cycle;
+      cycle.then(() => {
+        setLoading(false);
+        ref.cycles.delete(cycle.abort);
+      });
+    };
+    wrapper.abort = () => {
+      ref.lastCycle && ref.lastCycle.abort();
+      setLoading(false);
+    };
+    return wrapper;
+  });
+
+  callback.loading = loading;
+
+  useEffect(
+    () => () => {
+      ref.cycles.forEach((abort) => abort());
+    },
+    []
+  );
+
+  return callback;
+}
 
 export function useStore<CurrentStore extends Store>(
   store: CurrentStore,

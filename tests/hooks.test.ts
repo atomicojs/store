@@ -1,130 +1,36 @@
 import { describe, it, expect } from "vitest";
 import { createHooks } from "atomico/test-hooks";
-import { Store } from "../src/store";
-import { useStore, useActionObserver, useActionFromForm } from "../src/hooks";
-import { useRef } from "atomico";
+import { useStore, createStore } from "../src/core";
 
-describe("context", () => {
-  it("context", () => {
-    const hostParent = document.createElement("div");
-    const hooksParent = createHooks(() => {}, hostParent);
+describe("useStore", () => {
+  it("Case 1", () => {
+    const host = document.createElement("div");
+    const update = () => {};
+    const hooks = createHooks(update, host);
+    const store = createStore(0);
 
-    const hostChild = document.createElement("div");
-    const hooksChild = createHooks(() => {}, hostChild);
+    const result = hooks.load(() => useStore(store));
 
-    hostParent.appendChild(hostChild);
-
-    const store = new Store({ count: 0 });
-
-    const scopeStore = hooksParent.load(() =>
-      useStore(store, {
-        count: 1,
-      })
-    );
-
-    hooksParent.cleanEffects()();
-
-    expect(hooksChild.load(() => useStore(store))).toEqual(scopeStore);
+    expect(result.state).toEqual(0);
   });
-});
 
-describe("useActionObserver", () => {
-  it("cycle", async () => {
-    const values = [];
-    const valuesExpect = ["", "pending", "fulfilled"];
+  it("Case 2, context", () => {
+    const host = document.createElement("div");
+    const parent = document.createElement("div");
 
-    let lastCycle: Promise<any>;
+    parent.append(host);
 
-    const spy = () => {
-      const cycle = store.actions.increment();
+    const update = () => {};
+    const hooksParent = createHooks(update, parent);
+    const hooksChild = createHooks(update, host);
+    const store = createStore(0);
 
-      lastCycle = cycle;
+    const resultParent = hooksParent.load(() => useStore(store, () => 2));
 
-      return cycle;
-    };
+    const resultChild = hooksChild.load(() => useStore(store));
 
-    const load = () => {
-      const [action, status] = useActionObserver(spy);
-      values.push(status);
-      return action;
-    };
+    expect(resultChild.state).toEqual(resultParent.state);
 
-    const hooks = createHooks(() => {
-      hooks.load(load);
-    });
-
-    const store = new Store(
-      { count: 0 },
-      {
-        actions: {
-          async increment({ count }) {
-            await new Promise((resolve) => setTimeout(resolve, 50)); //TICK
-            return { count: count + 1 };
-          },
-        },
-      }
-    );
-
-    const action = hooks.load(load);
-
-    action(null);
-    action(null); // concurrency lock
-    action(null); // concurrency lock
-
-    hooks.cleanEffects()();
-
-    await lastCycle;
-
-    expect(values).toEqual(valuesExpect);
-  });
-});
-
-describe("useActionFromForm", () => {
-  it("cycle", async () => {
-    const values = [];
-    const valuesExpect = ["", "pending", "fulfilled"];
-
-    const hooks = createHooks(() => {
-      hooks.load(load);
-    });
-
-    const form = document.createElement("form");
-
-    const store = new Store(
-      { loading: false },
-      {
-        actions: {
-          send(state, form: HTMLFormElement) {},
-        },
-      }
-    );
-
-    let firstCycle: Promise<any>;
-
-    const spy = (form: HTMLFormElement) => {
-      const cycle = store.actions.send(form);
-
-      firstCycle = firstCycle || cycle;
-
-      return cycle;
-    };
-
-    const load = () => {
-      const ref = useRef(form);
-      const [status, action] = useActionFromForm(ref, spy);
-      values.push(status);
-      return action;
-    };
-
-    const action = hooks.load(load);
-
-    hooks.cleanEffects()();
-
-    form.dispatchEvent(new Event("submit"));
-    action(form); // concurrency lock
-
-    await firstCycle;
-
-    expect(values).toEqual(valuesExpect);
+    expect(store.state).toEqual(0);
   });
 });

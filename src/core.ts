@@ -1,2 +1,2 @@
-export { useStore } from "./hooks";
+export { useStore, useAction } from "./hooks";
 export { createStore } from "./store";
