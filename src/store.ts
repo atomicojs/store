@@ -26,13 +26,13 @@ export interface Store<State = any, Actions = any> {
 }
 
 export function createStore<
-  State = any,
+  State,
   Actions extends {
     [index: string]: (
       state: State,
       payload?: any
     ) => State | Promise<State> | AsyncGenerator<State, State, State>;
-  } = any
+  }
 >(scopeState: State, scopeActions?: Actions): Store<State, Actions> {
   const handlers = new Set<(state: State) => any>();
 
