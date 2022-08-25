@@ -20,7 +20,7 @@
     "build": "vite build --outDir docs --base store",
     "test": "vitest ",
     "coverage": "vitest run --coverage",
-    "exports": "exports \"src/*.ts\" --exports --types --main core --watch",
+    "exports": "exports \"src/*.ts\" --exports --types --main core",
     "prepublishOnly": "npm run coverage && npm run exports"
   },
   "dependencies": {
