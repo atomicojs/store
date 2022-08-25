@@ -13,22 +13,30 @@ type GetAction<Action, State> = Action extends (
       : State
   : any;
 
-export type Store = ReturnType<typeof createStore<any, any>>;
+type GetActions<Actions, State> = {
+  [I in keyof Actions]: GetAction<Actions[I], State>;
+};
+
+export interface Store<State = any, Actions = any> {
+  get state(): State;
+  set state(value: State);
+  actions: GetActions<Actions, State>;
+  on(handler: (state: State) => any): () => void;
+  clone(sync: (state: State) => State): Store<State, Actions>;
+}
 
 export function createStore<
-  State,
+  State = any,
   Actions extends {
     [index: string]: (
       state: State,
       payload?: any
     ) => State | Promise<State> | AsyncGenerator<State, State, State>;
-  }
->(scopeState: State, scopeActions?: Actions) {
+  } = any
+>(scopeState: State, scopeActions?: Actions): Store<State, Actions> {
   const handlers = new Set<(state: State) => any>();
 
-  const actions = {} as {
-    [I in keyof Actions]: GetAction<Actions[I], State>;
-  };
+  const actions = {} as GetActions<Actions, State>;
 
   const emit = () => handlers.forEach((handler) => handler(scopeState));
 
@@ -61,9 +69,8 @@ export function createStore<
       set(state);
     },
     actions,
-    on: (handler: (state: State) => any) =>
-      handlers.add(handler) && (() => handlers.delete(handler)),
-    clone: (sync?: (state: State) => State) =>
+    on: (handler) => handlers.add(handler) && (() => handlers.delete(handler)),
+    clone: (sync) =>
       createStore<State, Actions>(
         sync ? sync(scopeState) : scopeState,
         scopeActions
