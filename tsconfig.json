@@ -1,14 +1,4 @@
 {
-  "include": ["src/**/*","example/**/*", "vite.config.js","types.d.ts"],
-    "compilerOptions": {
-      "jsx": "react-jsx",
-      "jsxImportSource": "atomico",
-      "allowJs": true,
-      "declaration": true,
-      "emitDeclarationOnly": true,
-      "outDir": "",
-      "moduleResolution": "node",
-      "target": "esnext",
-      "lib": ["ESNext", "DOM","DOM.Iterable"]
-    }
-  }
+  "extends": "@atomico/tsconfig/base.json",
+  "include": ["src/**/*","tests/**/*"]
+}

@@ -20,21 +20,23 @@
     "build": "vite build --outDir docs --base store",
     "test": "vitest ",
     "coverage": "vitest run --coverage",
-    "exports": "exports \"src/*.ts\" --exports --types --main core",
+    "exports": "exports \"src/*.ts\" --exports --types --main core --watch",
     "prepublishOnly": "npm run coverage && npm run exports"
   },
   "dependencies": {
-    "@atomico/hooks": "^3.33.4",
-    "@uppercod/consume-generator": "^1.4.1",
+    "atomico": "^1.62.1"
+  },
+  "peerDependencies": {
     "atomico": "^1.62.1"
   },
   "devDependencies": {
-    "@atomico/exports": "^0.27.0",
-    "@atomico/plugin-vite": "^1.1.1",
+    "@atomico/exports": "^0.36.1",
+    "@atomico/tsconfig": "^1.0.0",
+    "@atomico/vite": "^1.5.1",
     "c8": "^7.11.0",
     "formilk": "^0.20.0",
     "happy-dom": "^2.55.0",
-    "typescript": "^4.6.3",
+    "typescript": "^4.7.4",
     "vite": "latest",
     "vitest": "^0.9.3"
   }
