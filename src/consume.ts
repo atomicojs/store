@@ -8,10 +8,20 @@ export interface Abort {
 }
 
 export class Cycle<R> extends Promise<R> {
-  process: Abort = { abort: false };
-  abort() {
-    this.process.abort = true;
+  process: Abort;
+  constructor(
+    callback: (
+      resolve: (param: any) => void,
+      reject: (param: any) => any
+    ) => any,
+    process: Abort
+  ) {
+    super(callback);
+    this.process = process;
   }
+  abort = () => {
+    this.process.abort = true;
+  };
 }
 
 const isGenerator = (value: any) =>
@@ -25,7 +35,7 @@ export function consume(
   if (process.abort) return;
   const typeAsync = isGenerator(result) ? 1 : result instanceof Promise ? 2 : 0;
   if (typeAsync) {
-    const cycle = new Cycle(async (resolve, reject) => {
+    return new Cycle(async (resolve, reject) => {
       try {
         if (typeAsync === 2) {
           const value = await result;
@@ -53,11 +63,7 @@ export function consume(
       } catch (e) {
         reject(e);
       }
-    });
-
-    cycle.process = process;
-
-    return cycle;
+    }, process);
   } else {
     if (typeof result === "function") {
       return consume(get(), { set, get }, process);
