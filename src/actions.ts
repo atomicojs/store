@@ -60,6 +60,8 @@ export const createAction =
       set((await result)(get()));
     } else if (isAsyncIterator<State>(result)) {
       await consumeAsyncIterator<State>(result, set, get);
+    } else if (result) {
+      set(result(get()));
     }
   };
 
