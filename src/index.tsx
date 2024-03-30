@@ -9,9 +9,12 @@ import {
 } from "atomico";
 import { ActionCollections, createStore as coreCreateStore } from "./core";
 
-export const createStore = <State, Actions extends ActionCollections<State>>(
+export const createStore = <
+  State extends object,
+  Actions extends ActionCollections<State>
+>(
   state: State,
-  actions: Actions
+  actions?: Actions
 ) => {
   const defaultStore = coreCreateStore(state, actions);
   const Store = c(
@@ -52,14 +55,14 @@ export const createStore = <State, Actions extends ActionCollections<State>>(
   return Store;
 };
 
-export type AnyStore = ReturnType<typeof createStore<any, any>>;
+export type DefaultStore = ReturnType<typeof createStore<any, any>>;
 
-export const useStore = <S extends AnyStore>(Store: S) => {
+export function useStore<S extends DefaultStore>(ID: S) {
   const host = useHost();
   const update = useUpdate();
   const store = useMemo(() => {
-    return host.current.closest(new Store().localName);
-  }, [Store]);
+    return host.current.closest(new ID().localName);
+  }, [ID]);
 
   useInsertionEffect(() => {
     store.addEventListener("change", update);
@@ -67,4 +70,4 @@ export const useStore = <S extends AnyStore>(Store: S) => {
   }, [store]);
 
   return store.store as Props<S>["store"];
-};
+}

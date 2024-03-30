@@ -1,39 +1,16 @@
 import { c } from "atomico";
 import { createStore, useStore } from ".";
 
-interface StateTodo {
-  checked: boolean;
-  key: number;
-  label: string;
-  loading?: boolean;
-}
-interface State {
-  list: StateTodo[];
-}
+function actionCheck(state: { id: number }) {}
 
-const Store = createStore({ list: [] } as State, {
-  async *update(next: StateTodo) {
-    yield ({ list }) => ({
-      list: list.map((prev) =>
-        prev.key === next.key
-          ? {
-              loading: true,
-              ...next,
-            }
-          : prev
-      ),
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    return ({ list }) => ({
-      list: list.map((prev) => (prev.key === next.key ? next : prev)),
-    });
-  },
+const Store = createStore({
+  id: 0,
+  checked: false,
 });
 
 const List = c(() => {
-  const { state, actions } = useStore(Store);
+  const { state } = useStore(Store);
+
   return (
     <host shadowDom>
       <li>
