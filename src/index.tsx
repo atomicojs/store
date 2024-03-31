@@ -1,38 +1,30 @@
 import {
-  Props,
   c,
-  useHost,
+  useContext,
+  useEvent,
   useInsertionEffect,
   useMemo,
-  useEvent,
+  useProvider,
   useUpdate,
 } from "atomico";
-import { ActionCollections, createStore as coreCreateStore } from "./core";
+import { createStore as coreCreateStore } from "./core";
+import { UseProvider } from "atomico/types/context";
+const CONTEXT_VALUE = "value";
 
-export const createStore = <
-  State extends object,
-  Actions extends ActionCollections<State>
->(
-  state: State,
-  actions?: Actions
-) => {
-  const defaultStore = coreCreateStore(state, actions);
+export const createStore = <State extends object>(state: State) => {
+  const defaultStore = coreCreateStore(state);
+
   const Store = c(
-    ({ state, actions }) => {
+    ({ state }) => {
       const dispatch = useEvent("change");
-      const store = useMemo(
-        () => coreCreateStore(state, actions),
-        [state, actions]
-      );
-      useInsertionEffect(
-        () =>
-          store.subscribe(() => {
-            console.log("UPDATE!");
-            dispatch();
-          }),
-        [store]
-      );
-      return <host store={store}></host>;
+
+      const store = useMemo(() => coreCreateStore(state), [state]);
+
+      useInsertionEffect(() => store.subscribe(dispatch), [store]);
+
+      useProvider(Store, store);
+
+      return <host value={store} style="display: content"></host>;
     },
     {
       props: {
@@ -40,11 +32,7 @@ export const createStore = <
           type: Object,
           value: () => state,
         },
-        actions: {
-          type: Object,
-          value: () => actions,
-        },
-        store: {
+        value: {
           type: Object,
           value: () => defaultStore,
         },
@@ -52,22 +40,22 @@ export const createStore = <
     }
   );
 
+  Store[CONTEXT_VALUE] = defaultStore.state;
+
   return Store;
 };
 
-export type DefaultStore = ReturnType<typeof createStore<any, any>>;
+export type DefaultStore = ReturnType<typeof createStore<any>>;
 
-export function useStore<S extends DefaultStore>(ID: S) {
-  const host = useHost();
+export function useStore<CustomStore extends DefaultStore>(Store: CustomStore) {
   const update = useUpdate();
-  const store = useMemo(() => {
-    return host.current.closest(new ID().localName);
-  }, [ID]);
 
-  useInsertionEffect(() => {
-    store.addEventListener("change", update);
-    return () => store.removeEventListener("change", update);
-  }, [store]);
+  const store = useContext(Store);
 
-  return store.store as Props<S>["store"];
+  useInsertionEffect(() => store.subscribe(update), [store]);
+
+  return store.state;
 }
+
+export const useProviderStore: UseProvider = (Store, value) =>
+  useProvider(Store, value);
