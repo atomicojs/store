@@ -1,3 +1,5 @@
+export type Store<State extends object> = ReturnType<typeof createStore<State>>;
+
 export function createStore<State extends object>(customState: State) {
   const subscribers = new Set<(state: State) => any>();
   return {
