@@ -1,4 +1,5 @@
 import {
+  Host,
   c,
   useContext,
   useEvent,
@@ -7,22 +8,16 @@ import {
   useProvider,
   useUpdate,
 } from "atomico";
+import { Context, GetValueFromContext } from "atomico/types/context";
 import { createStore as coreCreateStore } from "./core";
-import { UseProvider } from "atomico/types/context";
 const CONTEXT_VALUE = "value";
 
 export const createStore = <State extends object>(state: State) => {
-  const defaultStore = coreCreateStore(state);
+  const defaultStore = coreCreateStore<State>(state);
 
   const Store = c(
-    ({ state }) => {
-      const dispatch = useEvent("change");
-
-      const store = useMemo(() => coreCreateStore(state), [state]);
-
-      useInsertionEffect(() => store.subscribe(dispatch), [store]);
-
-      useProvider(Store, store);
+    ({ state }): Host<{ onUpdateStore: CustomEvent<State> }> => {
+      const store = useProviderStore(Store as any, state, true);
 
       return <host value={store} style="display: content"></host>;
     },
@@ -54,8 +49,34 @@ export function useStore<CustomStore extends DefaultStore>(Store: CustomStore) {
 
   useInsertionEffect(() => store.subscribe(update), [store]);
 
-  return store.state;
+  return store.state as GetValueFromContext<CustomStore>["state"];
 }
 
-export const useProviderStore: UseProvider = (Store, value) =>
-  useProvider(Store, value);
+const isInitialStateFunction = <State extends object>(
+  value: ((value: State) => State) | State
+): value is (state: State) => State => typeof value === "function";
+
+export const useProviderStore = <
+  CustomStore extends Context<any>,
+  State extends GetValueFromContext<CustomStore>["state"]
+>(
+  Store: CustomStore,
+  state: State | ((state: State) => State),
+  isStoreElement?: boolean
+) => {
+  const dispatch = isStoreElement ? useEvent("UpdateStore") : useUpdate();
+
+  const store = useMemo(
+    () =>
+      coreCreateStore(
+        isInitialStateFunction(state) ? state(Store["value"]) : state
+      ),
+    [isStoreElement ? state : isStoreElement]
+  );
+
+  useInsertionEffect(() => store.subscribe(dispatch), [store]);
+
+  useProvider(Store, store);
+
+  return store.state;
+};

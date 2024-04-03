@@ -4,3 +4,4 @@
 /**/*.test.js
 /**/*.spec.js
 /vite.config.js
+.github

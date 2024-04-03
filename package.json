@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.0.2",
+  "version": "2.0.0",
   "type": "module",
   "repository": {
     "type": "git",
@@ -16,25 +16,25 @@
   "homepage": "https://github.com/atomicojs/store#readme",
   "author": "UpperCod",
   "scripts": {
-    "start": "vite --force",
-    "build": "vite build --outDir docs --base store",
-    "test": "vitest ",
-    "coverage": "vitest run --coverage",
-    "exports": "exports \"src/*.ts\" --exports --types --main core",
-    "prepublishOnly": "npm run coverage && npm run exports"
+    "start": "vite",
+    "build:test": "vitest run",
+    "build:compile": "tsc",
+    "build:exports": "exports \"dist/**/*\" --wrappers",
+    "prepublishOnly": "run build:* -s"
   },
   "dependencies": {
-    "atomico": "^1.77.2"
+    "atomico": "^1.78.2"
   },
   "devDependencies": {
     "@atomico/exports": "^1.13.2",
+    "@atomico/run": "^0.14.2",
     "@atomico/tsconfig": "^1.0.0",
     "@atomico/vite": "^2.17.9",
     "c8": "^7.11.0",
     "formilk": "^0.20.0",
     "happy-dom": "^2.55.0",
-    "typescript": "^4.7.4",
-    "vite": "^5.2.6",
-    "vitest": "^0.9.3"
+    "typescript": "^5.4.3",
+    "vite": "^5.2.7",
+    "vitest": "^1.4.0"
   }
 }
