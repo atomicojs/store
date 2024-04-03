@@ -1,6 +1,6 @@
 import { c, useEffect, useHost } from "atomico";
 import * as Store from "./store";
-import { useProviderStore, useStore } from "../src";
+import { useProviderStore, useStore } from "../../src";
 
 export const Tabs = c(() => {
   const store = useProviderStore(Store.Provider, (state) => ({
