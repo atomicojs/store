@@ -18,7 +18,7 @@ export const createStore = <State extends object>(state: State) => {
 
   const Store = c(
     ({ state, memo }): Host<{ onUpdateStore: CustomEvent<State> }> => {
-      useProviderStore(Store as any, state, memo ? memo : [state], true);
+      useProviderStore(Store as any, state, memo || [state], true);
       return <host style="display: contents"></host>;
     },
     {
