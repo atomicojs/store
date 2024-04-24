@@ -85,7 +85,10 @@ export const useProviderStore = <
   );
 
   useMemo(() => {
-    Object.assign(store.state, state);
+    try {
+      // Prevents Proxy startup error
+      Object.assign(store.state, state);
+    } catch {}
   }, memo || []);
 
   useInsertionEffect(() => store.subscribe(dispatch), [store]);
